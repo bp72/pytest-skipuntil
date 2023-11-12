@@ -19,3 +19,23 @@ def pytest_addoption(parser):
 @pytest.fixture
 def bar(request):
     return request.config.option.dest_foo
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "skip_until(dt, strict, msg): mark test to run only on named environment"
+    )
+
+
+def pytest_collection_modifyitems(items):
+    for testcase in items:       
+        for marker in testcase.own_markers:            
+            if marker.name == 'skip_until':
+                hard = marker.kwargs.get("strict") or False
+                until = marker.kwargs.get("deadline") or datetime.datetime.now()          
+                msg = marker.kwargs.get("msg") or ""
+                if datetime.datetime.now() >= until:
+                    print("skippppp")
+                    continue
+                testcase.add_marker(pytest.mark.skip(reason=f"suppresed until {until}. reason: {msg}"))
+                print(f"suppresed until {until}. reason: {msg}")
