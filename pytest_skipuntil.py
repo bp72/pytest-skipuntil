@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
 
 import pytest
 
 
 # TODO: [ ] datetime -> date switch
+# TODO: [ ] add strict feature
 
 MARKER_NAME = "skip_until"
 
@@ -23,7 +23,7 @@ def pytest_collection_modifyitems(items):
                 deadline = marker.kwargs.get("deadline")
 
                 if deadline is None:
-                    raise Exception("deadline is not defined!")
+                    raise pytest.UsageError("The deadline is not defined for skip_until!")
 
                 msg = marker.kwargs.get("msg") or ""
 
@@ -32,6 +32,6 @@ def pytest_collection_modifyitems(items):
 
                 testcase.add_marker(
                     pytest.mark.skip(
-                        reason=f"suppresed until {deadline}. reason: {msg}",
+                        reason=f"The test is suppressed until {deadline}. reason: {msg}",
                     ),
                 )
