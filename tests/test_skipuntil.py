@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# TODO:
-# [ ] add test to cover no deadline arg
+# TODO: [ ] add test to cover no deadline arg
 
 
 def test_skipuntil__later_date__expect_skipped(testdir):
