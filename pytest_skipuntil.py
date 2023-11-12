@@ -23,7 +23,9 @@ def pytest_collection_modifyitems(items):
                 deadline = marker.kwargs.get("deadline")
 
                 if deadline is None:
-                    raise pytest.UsageError("The deadline is not defined for skip_until!")
+                    raise pytest.UsageError(
+                        "The deadline is not defined for skip_until!",
+                    )
 
                 msg = marker.kwargs.get("msg") or ""
 
@@ -32,6 +34,9 @@ def pytest_collection_modifyitems(items):
 
                 testcase.add_marker(
                     pytest.mark.skip(
-                        reason=f"The test is suppressed until {deadline}. reason: {msg}",
+                        reason=(
+                            f"The test is suppressed until {deadline}. "
+                            f"The reason is: {msg}"
+                        ),
                     ),
                 )

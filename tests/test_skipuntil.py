@@ -24,7 +24,10 @@ def test_skip_until__today__expect_suppressed_message(testdir):
         import pytest
         from datetime import datetime, timedelta
 
-        @pytest.mark.skip_until(deadline=datetime(2023, 12, 11), msg='The test is flaky')
+        @pytest.mark.skip_until(
+            deadline=datetime(2023, 12, 11),
+            msg='The test is flaky'
+        )
         def test_skip_until__today__expect_suppressed_message(request):
             assert 1 == 2
     """)
@@ -32,7 +35,8 @@ def test_skip_until__today__expect_suppressed_message(testdir):
     result = testdir.runpytest('-rsx')
 
     result.stdout.fnmatch_lines([
-        '*The test is suppressed until 2023-12-11 00:00:00. reason: The test is flaky*'
+        '*The test is suppressed until 2023-12-11 00:00:00. '
+        'The reason is: The test is flaky*'
     ])
     assert result.ret == ExitCode.OK
 
