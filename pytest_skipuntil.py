@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 
 import pytest
 
@@ -32,10 +33,9 @@ def pytest_collection_modifyitems(items):
         for marker in testcase.own_markers:            
             if marker.name == 'skip_until':
                 hard = marker.kwargs.get("strict") or False
-                until = marker.kwargs.get("deadline") or datetime.datetime.now()          
+                until = marker.kwargs.get("deadline") or datetime.now()
                 msg = marker.kwargs.get("msg") or ""
-                if datetime.datetime.now() >= until:
-                    print("skippppp")
+                if datetime.now() <= until:
                     continue
                 testcase.add_marker(pytest.mark.skip(reason=f"suppresed until {until}. reason: {msg}"))
                 print(f"suppresed until {until}. reason: {msg}")
