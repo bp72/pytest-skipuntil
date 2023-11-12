@@ -4,10 +4,13 @@ from datetime import datetime
 import pytest
 
 
+# TODO:
+# [ ] datetime -> date switch
+
 def pytest_addoption(parser):
     group = parser.getgroup('skipuntil')
     group.addoption(
-        '--foo',
+        '--ignore-skip-until',
         action='store',
         dest='dest_foo',
         default='2023',
@@ -31,11 +34,18 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(items):
     for testcase in items:       
         for marker in testcase.own_markers:            
-            if marker.name == 'skip_until':
+            if marker.name == "skip_until":
+                deadline = marker.kwargs.get("deadline")                
+                
+                if deadline is None:                    
+                    raise Exception("deadline is not defined!")
+
                 hard = marker.kwargs.get("strict") or False
-                until = marker.kwargs.get("deadline") or datetime.now()
                 msg = marker.kwargs.get("msg") or ""
-                if datetime.now() <= until:
+                print(f"dt {datetime.now()} {deadline=}")
+                if datetime.now() > deadline:
+                    print(f"dt {datetime.now()=} {deadline=}")
                     continue
-                testcase.add_marker(pytest.mark.skip(reason=f"suppresed until {until}. reason: {msg}"))
-                print(f"suppresed until {until}. reason: {msg}")
+                
+                testcase.add_marker(pytest.mark.skip(reason=f"suppresed until {deadline}. reason: {msg}"))
+                print(f"suppresed until {deadline}. reason: {msg}")
