@@ -13,8 +13,8 @@ def test_skipuntil__later_date__expect_skipped(testdir):
             assert 1 == 2
     """)
 
-
     result = testdir.runpytest('-v')
+
     result.stdout.fnmatch_lines([
         '*::test_skipuntil__later_date__expect_skipped SKIPPED*',
     ])
