@@ -1,64 +1,79 @@
-# -*- coding: utf-8 -*-
+from _pytest.config import ExitCode
 
 
-def test_bar_fixture(testdir):
-    """Make sure that pytest accepts our fixture."""
-
-    # create a temporary pytest test module
-    testdir.makepyfile("""
-        def test_sth(bar):
-            assert bar == "europython2015"
-    """)
-
-    # run pytest with the following cmd args
-    result = testdir.runpytest(
-        '--foo=europython2015',
-        '-v'
-    )
-
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        '*::test_sth PASSED*',
-    ])
-
-    # make sure that that we get a '0' exit code for the testsuite
-    assert result.ret == 0
-
-
-def test_help_message(testdir):
-    result = testdir.runpytest(
-        '--help',
-    )
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        'skipuntil:',
-        '*--foo=DEST_FOO*Set the value for the fixture "bar".',
-    ])
-
-
-def test_hello_ini_setting(testdir):
-    testdir.makeini("""
-        [pytest]
-        HELLO = world
-    """)
-
+def test_skip_until__today__expect_skipped(testdir):
     testdir.makepyfile("""
         import pytest
+        from datetime import datetime, timedelta
 
-        @pytest.fixture
-        def hello(request):
-            return request.config.getini('HELLO')
-
-        def test_hello_world(hello):
-            assert hello == 'world'
+        @pytest.mark.skip_until(deadline=datetime.now() + timedelta(seconds=1))
+        def test_skip_until__today__expect_skipped(request):
+            assert 1 == 2
     """)
 
     result = testdir.runpytest('-v')
 
-    # fnmatch_lines does an assertion internally
     result.stdout.fnmatch_lines([
-        '*::test_hello_world PASSED*',
+        '*::test_skip_until__today__expect_skipped SKIPPED*',
+    ])
+    assert result.ret == ExitCode.OK
+
+
+def test_skip_until__today__expect_suppressed_message(testdir):
+    testdir.makepyfile("""
+        import pytest
+        from datetime import datetime, timedelta
+
+        @pytest.mark.skip_until(
+            deadline=datetime(2023, 12, 11),
+            msg='The test is flaky'
+        )
+        def test_skip_until__today__expect_suppressed_message(request):
+            assert 1 == 2
+    """)
+
+    result = testdir.runpytest('-rsx')
+
+    result.stdout.fnmatch_lines([
+        '*The test is suppressed until 2023-12-11 00:00:00. '
+        'The reason is: The test is flaky*'
+    ])
+    assert result.ret == ExitCode.OK
+
+
+def test_skip_until__later_date__expect_not_being_skipped(testdir):
+    testdir.makepyfile("""
+        import pytest
+        from datetime import datetime, timedelta
+
+        @pytest.mark.skip_until(deadline=datetime.now() - timedelta(seconds=1))
+        def test_skip_until__later_date__expect_not_being_skipped(request):
+            assert 1 == 2
+    """)
+
+    result = testdir.runpytest('-v')
+
+    result.stdout.fnmatch_lines([
+        '*::test_skip_until__later_date__expect_not_being_skipped FAILED*',
     ])
 
-    # make sure that that we get a '0' exit code for the testsuite
-    assert result.ret == 0
+    assert result.ret == ExitCode.TESTS_FAILED
+
+
+def test_skip_until__no_deadline_arg__expect_exception(testdir):
+    testdir.makepyfile("""
+        import pytest
+        from datetime import datetime, timedelta
+
+        @pytest.mark.skip_until()
+        def test_skip_until__no_deadline_arg__expect_exception(request):
+            assert 1 == 2
+    """)
+
+    result = testdir.runpytest('-v')
+
+    result.stderr.fnmatch_lines([
+        'ERROR: The deadline is not defined for skip_until!',
+    ])
+
+    assert result.ret == ExitCode.USAGE_ERROR

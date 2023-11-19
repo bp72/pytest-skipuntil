@@ -1,21 +1,42 @@
-# -*- coding: utf-8 -*-
+from datetime import datetime
 
 import pytest
 
 
-def pytest_addoption(parser):
-    group = parser.getgroup('skipuntil')
-    group.addoption(
-        '--foo',
-        action='store',
-        dest='dest_foo',
-        default='2023',
-        help='Set the value for the fixture "bar".'
+# TODO: [ ] datetime -> date switch
+# TODO: [ ] add strict feature
+
+MARKER_NAME = "skip_until"
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        f"{MARKER_NAME}(...): skip test until datetime",
     )
 
-    parser.addini('HELLO', 'Dummy pytest.ini setting')
 
+def pytest_collection_modifyitems(items):
+    for testcase in items:
+        for marker in testcase.own_markers:
+            if marker.name == "skip_until":
+                deadline = marker.kwargs.get("deadline")
 
-@pytest.fixture
-def bar(request):
-    return request.config.option.dest_foo
+                if deadline is None:
+                    raise pytest.UsageError(
+                        "The deadline is not defined for skip_until!",
+                    )
+
+                msg = marker.kwargs.get("msg") or ""
+
+                if datetime.now() > deadline:
+                    continue
+
+                testcase.add_marker(
+                    pytest.mark.skip(
+                        reason=(
+                            f"The test is suppressed until {deadline}. "
+                            f"The reason is: {msg}"
+                        ),
+                    ),
+                )

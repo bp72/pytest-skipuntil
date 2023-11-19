@@ -14,23 +14,21 @@ pytest-skipuntil
     :target: https://ci.appveyor.com/project/bp72/pytest-skipuntil/branch/master
     :alt: See Build Status on AppVeyor
 
-A simple pytest plugin to skip flapping test with deadline
+A simple pytest plugin to skip the tests with deadline in a simple way
 
 ----
-
-This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
-
 
 Features
 --------
 
-* TODO
+* Use this marker to specify the deadline for the skip: a convenient decorator to prevent skipping tests and never going back to fix them. When the deadline is behind, the test will start failing again.
 
 
 Requirements
 ------------
 
-* TODO
+* pytest
+* python>=3.8
 
 
 Installation
@@ -40,11 +38,22 @@ You can install "pytest-skipuntil" via `pip`_ from `PyPI`_::
 
     $ pip install pytest-skipuntil
 
-
 Usage
 -----
 
-* TODO
+* Use it as a decorator for the test that you want to skip::
+
+
+    @pytest.mark.skip_until(
+        deadline=datetime(2023, 12, 11),
+        msg='This test requires a fix, but I can't do it right now :('
+    )
+    def test_something():
+        ...
+
+The test will be skipped until 11/12/2023, but it will start failing again after this date, so you'll be
+reminded to make a fix.
+
 
 Contributing
 ------------
