@@ -16,6 +16,9 @@ def test_skip_until__today__expect_skipped(testdir):
     result.stdout.fnmatch_lines([
         "*::test_skip_until__today__expect_skipped SKIPPED*",
     ])
+    result.stdout.fnmatch_lines([
+        "test_skip_until__today__expect_skipped.py: The test is suppressed until*",
+    ])
     assert result.ret == ExitCode.OK
 
 
@@ -74,7 +77,11 @@ def test_skip_until__later_date__expect_not_being_skipped(testdir):
     result.stdout.fnmatch_lines([
         "*::test_skip_until__later_date__expect_not_being_skipped FAILED*",
     ])
-
+    result.stdout.fnmatch_lines([
+        "test_skip_until__later_date__expect_not_being_skipped.py::"
+        "test_skip_until__later_date__expect_not_being_skipped: the deadline "
+        "for the test has passed*",
+    ])
     assert result.ret == ExitCode.TESTS_FAILED
 
 
