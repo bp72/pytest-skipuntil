@@ -21,10 +21,18 @@ def pytest_collection_modifyitems(items):
         for marker in testcase.own_markers:
             if marker.name == "skip_until":
                 deadline = marker.kwargs.get("deadline")
+                if not deadline and marker.args:
+                    deadline = marker.args[0]
 
                 if deadline is None:
                     raise pytest.UsageError(
                         "The deadline is not defined for skip_until!",
+                    )
+
+                if not isinstance(deadline, datetime):
+                    raise pytest.UsageError(
+                        f"Unexpected deadline type {type(deadline)} is passed "
+                        f"to skip_until, please specify a datetime!",
                     )
 
                 msg = marker.kwargs.get("msg") or ""
